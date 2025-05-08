@@ -31,6 +31,8 @@ class _AppointmentPageState extends State<AppointmentPage> {
     }
   }
 
+
+  //this is the init state
   @override
   void initState() {
     getAppointments();

@@ -4,89 +4,87 @@ import 'package:doctor_appointment_app/utils/config.dart';
 import 'package:flutter/material.dart';
 
 class DoctorCard extends StatelessWidget {
-  const DoctorCard({super.key, required this.doctor, required this.isFav});
+  const DoctorCard({
+    super.key,
+    required this.doctor,
+    required this.isFav,
+    required this.onFavToggle,
+  });
 
   final Map<String, dynamic> doctor;
   final bool isFav;
+  final VoidCallback onFavToggle;
 
   @override
   Widget build(BuildContext context) {
-    Config().init(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-      height: 150,
-      child: GestureDetector(
-        child: Card(
-          elevation: 5,
-          color: Colors.white,
-          child: Row(
-            children: [
-              SizedBox(
-                width: Config.widthSize * 0.33,
-                child: Image.network(
-                  "${doctor['doctor_profile']}",
-                  fit: BoxFit.fill,
-                  errorBuilder: (context, error, stackTrace) {
-                    return FlutterLogo(size: Config.widthSize * 0.33);
-                  },
-                ),
-              ),
-              Flexible(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 20,
+    return GestureDetector(
+      onTap: () {
+        MyApp.navigatorKey.currentState!.push(
+          MaterialPageRoute(
+            builder: (_) => DoctorDetails(doctor: doctor, isFav: isFav),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 6,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 40,
+              backgroundImage: NetworkImage("${doctor['doctor_profile']}"),
+              onBackgroundImageError: (_, __) {},
+              backgroundColor: Colors.grey[200],
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Dr. ${doctor['doctor_name']}",
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        "Dr ${doctor['doctor_name']}",
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        "${doctor['category'] ?? 'General'} Specialist",
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.normal,
-                        ),
-                      ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "${doctor['category'] ?? 'General'} Specialist",
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      const Icon(Icons.star, color: Colors.amber, size: 16),
+                      const SizedBox(width: 4),
+                      const Text("4.5"),
+                      const SizedBox(width: 8),
+                      const Text("Reviews (20)"),
                       const Spacer(),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: const <Widget>[
-                          Icon(
-                            Icons.star_border,
-                            color: Colors.yellow,
-                            size: 16,
-                          ),
-                          Spacer(flex: 1),
-                          Text('4.5'),
-                          Spacer(flex: 1),
-                          Text('Reviews'),
-                          Spacer(flex: 1),
-                          Text('(20)'),
-                          Spacer(flex: 7),
-                        ],
+                      IconButton(
+                        icon: isFav
+                            ? const Icon(Icons.favorite, color: Colors.red)
+                            : const Icon(Icons.favorite_border),
+                        onPressed: onFavToggle,
                       ),
                     ],
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
-        ),
-        onTap: () {
-          //pass the details to detail page
-          MyApp.navigatorKey.currentState!.push(
-            MaterialPageRoute(
-              builder: (_) => DoctorDetails(doctor: doctor, isFav: isFav),
             ),
-          );
-        },
+          ],
+        ),
       ),
     );
   }

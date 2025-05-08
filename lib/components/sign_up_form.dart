@@ -20,100 +20,94 @@ class _SignUpFormState extends State<SignUpForm> {
   final _emailController = TextEditingController();
   final _passController = TextEditingController();
   bool obsecurePass = true;
+  bool isLoading = false;
+
   @override
   Widget build(BuildContext context) {
     return Form(
       key: _formKey,
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: <Widget>[
+        children: [
+          const SizedBox(height: 20),
           TextFormField(
             controller: _nameController,
-            keyboardType: TextInputType.text,
-            cursorColor: Config.primaryColor,
-            decoration: const InputDecoration(
-              hintText: 'Username',
-              labelText: 'Username',
-              alignLabelWithHint: true,
-              prefixIcon: Icon(Icons.person_outlined),
-              prefixIconColor: Config.primaryColor,
-            ),
+            decoration: _inputDecoration('Username', Icons.person_outlined),
+            validator: (value) =>
+                value == null || value.isEmpty ? 'Enter username' : null,
           ),
-          Config.spaceSmall,
+          const SizedBox(height: 16),
           TextFormField(
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
-            cursorColor: Config.primaryColor,
-            decoration: const InputDecoration(
-              hintText: 'Email Address',
-              labelText: 'Email',
-              alignLabelWithHint: true,
-              prefixIcon: Icon(Icons.email_outlined),
-              prefixIconColor: Config.primaryColor,
-            ),
+            decoration: _inputDecoration('Email Address', Icons.email_outlined),
+            validator: (value) =>
+                value == null || value.isEmpty ? 'Enter email' : null,
           ),
-          Config.spaceSmall,
+          const SizedBox(height: 16),
           TextFormField(
             controller: _passController,
-            keyboardType: TextInputType.visiblePassword,
-            cursorColor: Config.primaryColor,
             obscureText: obsecurePass,
-            decoration: InputDecoration(
-                hintText: 'Password',
-                labelText: 'Password',
-                alignLabelWithHint: true,
-                prefixIcon: const Icon(Icons.lock_outline),
-                prefixIconColor: Config.primaryColor,
-                suffixIcon: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        obsecurePass = !obsecurePass;
-                      });
-                    },
-                    icon: obsecurePass
-                        ? const Icon(
-                            Icons.visibility_off_outlined,
-                            color: Colors.black38,
-                          )
-                        : const Icon(
-                            Icons.visibility_outlined,
-                            color: Config.primaryColor,
-                          ))),
+            decoration: _inputDecoration(
+              'Password',
+              Icons.lock_outline,
+              suffix: IconButton(
+                icon: Icon(
+                  obsecurePass ? Icons.visibility_off : Icons.visibility,
+                  color: Colors.grey,
+                ),
+                onPressed: () => setState(() => obsecurePass = !obsecurePass),
+              ),
+            ),
+            validator: (value) =>
+                value == null || value.isEmpty ? 'Enter password' : null,
           ),
-          Config.spaceSmall,
-          Consumer<AuthModel>(
-            builder: (context, auth, child) {
-              return Button(
-                width: double.infinity,
-                title: 'Sign Up',
-                onPressed: () async {
-                  final userRegistration = await DioProvider().registerUser(
-                      _nameController.text,
-                      _emailController.text,
-                      _passController.text);
+          const SizedBox(height: 24),
+          Consumer<AuthModel>(builder: (context, auth, child) {
+            return isLoading
+                ? const CircularProgressIndicator()
+                : Button(
+                    width: double.infinity,
+                    title: 'Sign Up',
+                    onPressed: () async {
+                      if (!_formKey.currentState!.validate()) return;
 
-                  //if register success, proceed to login
-                  if (userRegistration) {
-                    final token = await DioProvider()
-                        .getToken(_emailController.text, _passController.text);
-
-                    if (token) {
-                      auth.loginSuccess({}, {}); //update login status
-                      //rediret to main page
-                      MyApp.navigatorKey.currentState!.pushNamed('main');
-                    }
-                  } else {
-                    print('register not successful');
-                  }
-                },
-                disable: false,
-              );
-            },
-          )
+                      setState(() => isLoading = true);
+                      final registered = await DioProvider().registerUser(
+                          _nameController.text,
+                          _emailController.text,
+                          _passController.text);
+                      if (registered) {
+                        final token = await DioProvider().getToken(
+                            _emailController.text, _passController.text);
+                        if (token) {
+                          auth.loginSuccess({}, {});
+                          MyApp.navigatorKey.currentState!.pushNamed('main');
+                        }
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content:
+                                    Text("Registration failed. Try again.")));
+                      }
+                      setState(() => isLoading = false);
+                    },
+                    disable: false,
+                  );
+          }),
         ],
       ),
     );
   }
-}
 
-//now, let's get all doctor details and display on Mobile screen
+  InputDecoration _inputDecoration(String label, IconData icon,
+      {Widget? suffix}) {
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(icon, color: Config.primaryColor),
+      suffixIcon: suffix,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      focusedBorder: const OutlineInputBorder(
+          borderSide: BorderSide(color: Config.primaryColor)),
+    );
+  }
+}

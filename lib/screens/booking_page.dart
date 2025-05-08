@@ -143,8 +143,9 @@ class _BookingPageState extends State<BookingPage> {
                   //if booking return status code 200, then redirect to success booking page
 
                   if (booking == 200) {
-                    MyApp.navigatorKey.currentState!
-                        .pushNamed('success_booking');
+
+                    MyApp.navigatorKey.currentState!.pushNamed('payment');
+
                   }
                 },
                 disable: _timeSelected && _dateSelected ? false : true,

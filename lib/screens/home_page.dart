@@ -82,7 +82,7 @@ class _HomePageState extends State<HomePage> {
                             child: CircleAvatar(
                               radius: 30,
                               backgroundImage:
-                                  AssetImage('assets/profile1.jpg'),
+                                  AssetImage('assets/profile.jpg'),
                             ),
                           )
                         ],
@@ -201,16 +201,22 @@ class _HomePageState extends State<HomePage> {
                       Config.spaceSmall,
                       Column(
                         children: List.generate(user['doctor'].length, (index) {
+                          var doc = user['doctor'][index];
                           return DoctorCard(
-                            doctor: user['doctor'][index],
-                            //if lates fav list contains particular doctor id, then show fav icon
-                            isFav: favList
-                                    .contains(user['doctor'][index]['doc_id'])
-                                ? true
-                                : false,
+                            doctor: doc,
+                            isFav: favList.contains(doc['doc_id']),
+                            onFavToggle: () {
+                              setState(() {
+                                if (favList.contains(doc['doc_id'])) {
+                                  favList.remove(doc['doc_id']);
+                                } else {
+                                  favList.add(doc['doc_id']);
+                                }
+                              });
+                            },
                           );
                         }),
-                      ),
+                      )
                     ],
                   ),
                 ),

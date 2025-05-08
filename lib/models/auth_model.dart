@@ -9,7 +9,19 @@ class AuthModel extends ChangeNotifier {
       {}; //update upcoming appointment when login
   List<Map<String, dynamic>> favDoc = []; //get latest favorite doctor
   List<dynamic> _fav = []; //get all fav doctor id in list
+  List<Map<String, dynamic>> _favDocs = [];
 
+  // List<Map<String, dynamic>> get getFavDoc => _favDocs;
+
+  void toggleFavDoctor(String docId) {
+    final index = _favDocs.indexWhere((doc) => doc['doc_id'] == docId);
+    if (index != -1) {
+      _favDocs.removeAt(index);
+    } else {
+      // optional: تضيفه لو مش موجود
+    }
+    notifyListeners();
+  }
   bool get isLogin {
     return _isLogin;
   }

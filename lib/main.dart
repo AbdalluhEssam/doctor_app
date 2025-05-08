@@ -2,6 +2,7 @@ import 'package:doctor_appointment_app/main_layout.dart';
 import 'package:doctor_appointment_app/models/auth_model.dart';
 import 'package:doctor_appointment_app/screens/auth_page.dart';
 import 'package:doctor_appointment_app/screens/booking_page.dart';
+import 'package:doctor_appointment_app/screens/payment_screen.dart';
 import 'package:doctor_appointment_app/screens/success_booked.dart';
 import 'package:doctor_appointment_app/utils/config.dart';
 import 'package:flutter/material.dart';
@@ -54,6 +55,7 @@ class MyApp extends StatelessWidget {
           'main': (context) => const MainLayout(),
           'booking_page': (context) => BookingPage(),
           'success_booking': (context) => const AppointmentBooked(),
+          'payment': (context) => const PaymentMethodScreen(),
         },
       ),
     );
