@@ -1,10 +1,13 @@
-import 'package:doctor_appointment_app/main.dart';
-import 'package:doctor_appointment_app/utils/config.dart';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/auth_model.dart';
 import '../providers/dio_provider.dart';
+import 'package:doctor_appointment_app/main.dart';
+import 'package:doctor_appointment_app/utils/config.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -14,6 +17,24 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  String _imagePath = 'assets/profile.jpg'; // Default image
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfileImage();
+  }
+
+  Future<void> _loadProfileImage() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? savedPath = prefs.getString('profile_image');
+    if (savedPath != null && savedPath.isNotEmpty) {
+      setState(() {
+        _imagePath = savedPath;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     Map<String, dynamic> user =
@@ -48,23 +69,33 @@ class _ProfilePageState extends State<ProfilePage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white
+                GestureDetector(
+                  onTap: _changeProfilePicture,
+                  child: Container(
+                    width: 110,
+                    height: 110,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 8,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: CircleAvatar(
+                      backgroundColor: Colors.white,
+                      radius: 55,
+                      child: CircleAvatar(
+                        radius: 50,
+                        backgroundImage: _imagePath.startsWith('assets/')
+                            ? AssetImage(_imagePath) as ImageProvider
+                            : FileImage(File(_imagePath)),
+                        backgroundColor: Colors.grey[200],
+                      ),
+                    ),
                   ),
-                  clipBehavior: Clip.hardEdge,
-                  padding: const EdgeInsets.all(8),
-                  child: Image.asset(
-                    'assets/profile.jpg',
-                    fit: BoxFit.contain,
-
-                    alignment: Alignment.topCenter,
-
-                  ),
-                  // backgroundColor: Colors.white,
                 ),
                 const SizedBox(height: 15),
                 Text(
@@ -98,7 +129,7 @@ class _ProfilePageState extends State<ProfilePage> {
             child: Center(
               child: Card(
                 margin:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(24),
                 ),
@@ -106,7 +137,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 shadowColor: Colors.black12,
                 child: Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -162,6 +193,29 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
       ],
     );
+  }
+
+  Future<void> _checkPermissions() async {
+    await Permission.camera.request();
+    await Permission.photos.request();
+  }
+
+  Future<void> _changeProfilePicture() async {
+    await _checkPermissions();
+
+    final ImagePicker picker = ImagePicker();
+    final XFile? pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+    );
+
+    if (pickedFile != null) {
+      setState(() {
+        _imagePath = pickedFile.path;
+      });
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('profile_image', pickedFile.path);
+    }
   }
 
   ListTile buildListTile({

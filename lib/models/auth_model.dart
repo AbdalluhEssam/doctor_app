@@ -7,9 +7,12 @@ class AuthModel extends ChangeNotifier {
   Map<String, dynamic> user = {}; //update user details when login
   Map<String, dynamic> appointment =
       {}; //update upcoming appointment when login
+  final String _profileImagePath = 'assets/profile.jpg';
+
   List<Map<String, dynamic>> favDoc = []; //get latest favorite doctor
   List<dynamic> _fav = []; //get all fav doctor id in list
   List<Map<String, dynamic>> _favDocs = [];
+  String get profileImage => _profileImagePath;
 
   // List<Map<String, dynamic>> get getFavDoc => _favDocs;
 

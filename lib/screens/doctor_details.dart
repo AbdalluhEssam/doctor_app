@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:doctor_appointment_app/components/button.dart';
 import 'package:doctor_appointment_app/models/auth_model.dart';
 import 'package:doctor_appointment_app/providers/dio_provider.dart';
@@ -6,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../components//custom_appbar.dart';
+import '../components/custom_appbar.dart';
 
 class DoctorDetails extends StatefulWidget {
   const DoctorDetails({super.key, required this.doctor, required this.isFav});
@@ -31,39 +33,32 @@ class _DoctorDetailsState extends State<DoctorDetails> {
 
   @override
   Widget build(BuildContext context) {
+    final profileImage = Provider.of<AuthModel>(context).profileImage;
+
     return Scaffold(
       appBar: CustomAppBar(
         appTitle: 'Doctor Details',
         icon: const FaIcon(Icons.arrow_back_ios),
         actions: [
-          //Favarite Button
           IconButton(
-            //press this button to add/remove favorite doctor
             onPressed: () async {
-              //get latest favorite list from auth model
               final list =
                   Provider.of<AuthModel>(context, listen: false).getFav;
 
-              //if doc id is already exist, mean remove the doc id
               if (list.contains(doctor['doc_id'])) {
                 list.removeWhere((id) => id == doctor['doc_id']);
               } else {
-                //else, add new doctor to favorite list
                 list.add(doctor['doc_id'].toString());
               }
 
-              //update the list into auth model and notify all widgets
               Provider.of<AuthModel>(context, listen: false).setFavList(list);
 
               final SharedPreferences prefs =
-                  await SharedPreferences.getInstance();
+              await SharedPreferences.getInstance();
               final token = prefs.getString('token') ?? '';
 
-              if (token.isNotEmpty && token != '') {
-                //update the favorite list into database
+              if (token.isNotEmpty) {
                 final response = await DioProvider().storeFavDoc(token, list);
-                //if insert successfully, then change the favorite status
-
                 if (response == 200) {
                   setState(() {
                     isFav = !isFav;
@@ -82,10 +77,19 @@ class _DoctorDetailsState extends State<DoctorDetails> {
         child: SingleChildScrollView(
           child: Column(
             children: <Widget>[
+              // عرض صورة البروفايل في الصفحة الرئيسية
+              // Padding(
+              //   padding: const EdgeInsets.all(10),
+              //   child: CircleAvatar(
+              //     radius: 40,
+              //     backgroundImage: profileImage != null
+              //         ? FileImage(File(profileImage))
+              //         : AssetImage('assets/default_avatar.png')
+              //             as ImageProvider,
+              //   ),
+              // ),
               AboutDoctor(doctor: doctor),
               DetailBody(doctor: doctor),
-
-
             ],
           ),
         ),
@@ -162,20 +166,6 @@ class AboutDoctor extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
           ),
-          Config.spaceSmall,
-          SizedBox(
-            width: Config.widthSize * 0.75,
-            child: const Text(
-              'Sarawak General Hospital',
-              style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-                fontSize: 15,
-              ),
-              softWrap: true,
-              textAlign: TextAlign.center,
-            ),
-          ),
         ],
       ),
     );
@@ -198,7 +188,7 @@ class DetailBody extends StatelessWidget {
           Config.spaceSmall,
           DoctorInfo(
             patients: doctor['patients'] ?? 0,
-            exp: doctor['exp'] ?? 0,
+            exp: doctor['experience'] ?? 0,
           ),
           Config.spaceMedium,
           const Text(
@@ -207,10 +197,58 @@ class DetailBody extends StatelessWidget {
           ),
           Config.spaceSmall,
           Text(
-            'Dr. ${doctor['doctor_name']} is an experience ${doctor['category']} Specialist at Sarawak, graduated since 2008, and completed his/her training at Sungai Buloh General Hospital.',
+            'Dr. ${doctor['doctor_name']} is an experienced ${doctor['category']} specialist, graduated in 2008, and completed training at Sungai Buloh General Hospital.',
             style: const TextStyle(fontWeight: FontWeight.w500, height: 1.5),
             softWrap: true,
             textAlign: TextAlign.justify,
+          ),
+          Config.spaceMedium,
+          const Text(
+            'Location',
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
+          ),
+          Config.spaceSmall,
+          Row(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.purple.withOpacity(0.1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.all(15),
+                child: const Icon(
+                  Icons.location_on,
+                  color: Colors.purple,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      doctor['clinic_name'] ?? 'Unknown Clinic',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    Text(
+                      doctor['clinic_address'] ?? 'No address available',
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
